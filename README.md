@@ -1,6 +1,6 @@
-# 🎨 Deep Research Agent - Frontend
+# 🔬 Deep Research Agent - Backend
 
-A modern, responsive Next.js frontend for the Deep Research Agent. Features real-time streaming research progress, multi-model support, and an intuitive chat-like interface similar to Perplexity and OpenAI's thinking mode.
+A powerful FastAPI backend that provides intelligent deep research capabilities using multiple AI models (OpenAI, Anthropic, Kimi K2). Built with LangGraph for complex research workflows and designed for deployment on GCP Cloud Run. The backend is designed to work with the [Deep Research Frontend](https://github.com/ShenSeanChen/yt-deepresearch-frontend).
 
 📹 Full YouTube Guide: [Youtube link](https://www.youtube.com/watch?v=dw9Vkig47S0&list=PLE9hy4A7ZTmpGq7GHf5tgGFWh2277AeDR&index=29)
 
@@ -14,539 +14,236 @@ A modern, responsive Next.js frontend for the Deep Research Agent. Features real
 
 ## ✨ Features
 
-- **Real-time Research Streaming**: Live updates showing AI thinking process and research steps
-- **Multi-Model Support**: Switch between Claude 4, GPT-5, and Kimi K2 0905 Preview
-- **Progressive Research Display**: Detailed step-by-step research progress with visual indicators
-- **Google Docs Export**: One-click export to Google Docs with proper formatting and sources
-- **Responsive Design**: Mobile-friendly and adaptive to all screen sizes
-- **Persistent State**: Research results preserved when switching tabs
-- **Source Linking**: Clickable sources from research findings
-- **Model Comparison**: Compare performance metrics across different AI models
-- **Smooth Animations**: Loading states, progress bars, and transition effects
+- **Multi-Model Support**: OpenAI GPT-4o, Anthropic Claude, and Kimi K2 0905
+- **Streaming Research**: Real-time progress updates with detailed step visibility
+- **LangGraph Integration**: Complex research workflows with clarification, briefing, execution, and reporting
+- **Cloud Ready**: Docker containerized for GCP Cloud Run deployment
+- **Secure API Keys**: Environment-based configuration with user-provided keys
+- **Health Monitoring**: Built-in health checks and metrics collection
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm, yarn, or pnpm
-- Backend API running (see [Backend Setup](#-connecting-to-backend))
+- Python 3.11+
+- Docker (for containerization)
+- GCP Account (for deployment)
 
-### Installation
+### Local Development
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/ShenSeanChen/yt-deepresearch-frontend.git
-   cd yt-deepresearch-frontend
+   git clone https://github.com/ShenSeanChen/yt-DeepResearch-Backend.git
+   cd yt-DeepResearch-Backend
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
-   # or
-   yarn install
+   # Create a virtual environment (you can name it .venv or venv)
+   python3 -m venv venv
+
+   # Activate the virtual environment
+   source venv/bin/activate   # On macOS/Linux
+   # .\venv\Scripts\activate  # On Windows (PowerShell)
+
+   # Install dependencies
+   pip install -r requirements.txt
    ```
 
-3. **Configure backend URL**
+3. **Set up environment variables**
    ```bash
-   # For local development (backend on localhost:8080)
-   ./switch-env.sh local
-
-   # For production (deployed backend)
-   ./switch-env.sh production
-
-   # Or manually create .env.local:
-   echo "NEXT_PUBLIC_BACKEND_URL=http://localhost:8080" > .env.local
+   cp .env.example .env
+   # Edit .env with your configuration (optional - API keys can be provided via frontend)
    ```
 
-4. **Start development server**
+4. **Run the development server**
    ```bash
-   npm run dev
+   uvicorn main:app --host 0.0.0.0 --port 8080 --reload
    ```
 
-5. **Open in browser**
-   ```
-   http://localhost:3000
+5. **Test the API**
+   ```bash
+   curl http://localhost:8080/health
    ```
 
 ## 🏗️ Architecture
 
 ### Core Components
 
-- **`app/page.tsx`**: Main page with ResearchProvider wrapper
-- **`components/ResearchInterface.tsx`**: Core research UI with streaming
-- **`contexts/ResearchContext.tsx`**: Global state management
-- **`lib/utils.ts`**: Utility functions and helpers
+- **`main.py`**: FastAPI application with streaming endpoints
+- **`services/deep_research_service.py`**: Core research logic with LangGraph integration
+- **`services/model_service.py`**: AI model management and configuration
+- **`models/research_models.py`**: Pydantic models for API contracts
+- **`open_deep_research/`**: Research agent implementation
 
-### State Management
+### Research Workflow
 
-Uses React Context API for global state:
-- Research messages and streaming events
-- Current research stage and progress
-- Model selection and API key management
-- UI states (typing indicators, loading, etc.)
+1. **Clarification**: Optional query clarification with user
+2. **Research Brief**: Generate research strategy and plan
+3. **Research Execution**: Conduct multi-source research with real-time updates
+4. **Final Report**: Synthesize findings into comprehensive report
 
-## 🔧 Environment Configuration
+## 🔧 Configuration
 
-### Easy Environment Switching
+### Supported Models
 
-Use the provided script to switch between local and production backends:
+| Model | Provider | Configuration |
+|-------|----------|---------------|
+| `openai` | OpenAI | GPT-4o with 128k context |
+| `anthropic` | Anthropic | Claude-3-5-Sonnet |
+| `kimi` | Moonshot AI | K2 0905 via Anthropic API |
 
-```bash
-# Use local backend (localhost:8080)
-./switch-env.sh local
-
-# Use production backend
-./switch-env.sh production
-
-# Remove configuration (defaults to localhost:8080)
-./switch-env.sh remove
-```
-
-### Manual Configuration
-
-Create `.env.local` with your preferred backend URL:
+### Environment Variables
 
 ```bash
-# Local development
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+# Optional - API keys can be provided via frontend
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
 
-# Production
-NEXT_PUBLIC_BACKEND_URL=https://your-backend-url.run.app
+# For Kimi K2 (uses Anthropic API format)
+ANTHROPIC_API_KEY=your_kimi_key  # When using Kimi
+ANTHROPIC_BASE_URL=https://api.moonshot.ai/anthropic  # Auto-configured for Kimi
 ```
 
-### Environment Files
+## 📡 API Endpoints
 
-- `env.local.example`: Template for local development
-- `env.production.example`: Template for production
-- `switch-env.sh`: Script to easily switch configurations
-
-## 🔑 API Key Management
-
-### Multi-Model Configuration
-
-The Compare tab supports comprehensive API key management for all three models:
-
-#### **Method 1: Direct Input (Recommended)**
-1. Navigate to the **Compare** tab
-2. Click **"Configure"** in the API Key Configuration section
-3. Enter API keys for each model you want to use:
-   - **OpenAI**: Your OpenAI API key for GPT-5
-   - **Anthropic**: Your Anthropic API key for Claude 4
-   - **Kimi**: Your Moonshot API key for Kimi K2 0905
-4. Keys are automatically saved in your browser's local storage
-
-#### **Method 2: Import/Export Keys**
-- **Export**: Save your configured keys to a JSON file for backup
-- **Import**: Load keys from a previously exported JSON file
-- **Format**: `{"openai": "sk-...", "anthropic": "sk-ant-...", "kimi": "sk-..."}`
-
-#### **Method 3: Environment Variables (Development)**
-For development, you can set keys in `.env.local`:
+### Health Check
 ```bash
-# Not implemented yet - use direct input method
-NEXT_PUBLIC_OPENAI_API_KEY=your_key_here
-NEXT_PUBLIC_ANTHROPIC_API_KEY=your_key_here
-NEXT_PUBLIC_KIMI_API_KEY=your_key_here
+GET /health
+HEAD /health  # For Cloud Run health checks
 ```
 
-### Security Best Practices
-
-- ✅ **Local Storage**: Keys are stored locally in your browser
-- ✅ **No Server Storage**: Keys are never stored on our servers
-- ✅ **Encrypted Transit**: Keys are sent securely to respective APIs
-- ✅ **Clear Option**: Easy one-click clear all keys
-- ⚠️ **Browser Only**: Keys are lost if you clear browser data
-
-### Getting API Keys
-
-1. **OpenAI (GPT-5)**: [platform.openai.com](https://platform.openai.com/api-keys)
-2. **Anthropic (Claude 4)**: [console.anthropic.com](https://console.anthropic.com/)
-3. **Kimi (Moonshot)**: [platform.moonshot.cn](https://platform.moonshot.cn/)
-
-## 🎨 UI Components
-
-### Research Interface
-
-- **Model Selection**: Dropdown to choose AI model (OpenAI, Anthropic, Kimi)
-- **API Key Input**: Secure input for user's API key (single model)
-- **Progress Bar**: Visual progress indicator during research
-- **Live Indicator**: Shows when research is actively streaming
-- **Research Steps**: Expandable cards showing detailed research process
-
-### Compare Interface
-
-- **Multi-Key Management**: Configure API keys for all models simultaneously
-- **Model Selection**: Choose which models to include in comparison
-- **Parallel Execution**: Run the same query across multiple models
-- **Performance Metrics**: Detailed timing and quality comparisons
-- **Result Export**: Save comparison results and metrics
-
-### Research Progress Display
-
-The interface shows detailed research steps:
-
-1. **🎯 Planning**: Research strategy and source identification
-2. **🔍 Queries**: Individual research queries being executed
-3. **📊 Analysis**: Cross-referencing and analyzing findings
-4. **🧠 Synthesis**: Combining findings into comprehensive analysis
-5. **📋 Final Report**: Complete research report with sources
-
-### Visual Elements
-
-- **Color-coded Events**: Different colors for different types of research activities
-- **Smooth Animations**: Entry animations for new research steps
-- **Hover Effects**: Interactive elements with visual feedback
-- **Responsive Design**: Adapts to mobile, tablet, and desktop screens
-
-## 📄 Google Docs Export
-
-The Deep Research Agent includes built-in Google Docs export functionality for seamless report sharing and collaboration.
-
-### One-time Setup (OAuth)
-
-Follow these steps to enable one‑click Google Docs export:
-
-1) Create/Select a GCP project
-- Go to `https://console.cloud.google.com` and select or create a project.
-
-2) Enable APIs
-- Search for and enable:
-  - Google Docs API
-  - Google Drive API
-
-3) Configure OAuth consent screen
-- User type: External
-- App name, support email: fill in anything reasonable
-- Scopes: add
-  - `https://www.googleapis.com/auth/documents`
-  - `https://www.googleapis.com/auth/drive.file`
-- Test users: add the Gmail accounts that will use the app (you can add more later)
-
-4) Create OAuth credentials (Web application)
-- Navigation: Credentials → Create Credentials → OAuth client ID → Web application
-- Authorized JavaScript origins:
-  - `http://localhost:3000` (local dev)
-  - your production domain (e.g., `https://your-app.vercel.app`)
-- Redirect URIs: not required for this token‑only popup flow (GSI)
-- Copy the generated Client ID.
-
-5) Add the Client ID to environment variables
-- Local: create or update `.env.local` in `yt-DeepResearch-Frontend` with:
-  ```bash
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
-  ```
-- Production (e.g., Vercel): add the same variable in the project settings, and include your prod domain in Authorized JavaScript origins.
-
-6) Restart the app
+### Streaming Research
 ```bash
-npm run dev
-```
+POST /research/stream
+Content-Type: application/json
 
-7) Verify
-- Run a research → click Export → Google popup should appear → consent → a new Doc opens with your report + sources.
-
-Troubleshooting
-- Popup blocked: allow popups for `localhost:3000`.
-- Missing consent: ensure the signed‑in Google account is added as a Test User on the OAuth consent screen.
-- 400/unauthorized: confirm your domain is listed under Authorized JavaScript origins and the Client ID matches `.env.local`.
-
-### Export Options
-
-**1. Copy to Clipboard** (Recommended)
-- Click the "Copy for Docs" button when research is complete
-- Content is copied to your clipboard with proper formatting
-- Open Google Docs and paste directly (Ctrl+V / Cmd+V)
-
-**2. Create Google Doc**
-- Click the "Export" button to sign in with Google and auto-create a Doc
-- The new document opens in a new tab and contains the full report + sources
-
-### Export Content Includes
-
-- **Research Query**: Original question/prompt
-- **Metadata**: Generation timestamp and AI model used
-- **Full Report**: Complete research findings with markdown formatting
-- **Sources**: All referenced URLs and citations
-- **Branding**: Deep Research Agent attribution
-
-### Formatting Features
-
-The exported content maintains:
-- ✅ **Headers and Structure**: Proper heading hierarchy
-- ✅ **Bold and Italic Text**: Emphasis formatting preserved
-- ✅ **Numbered Lists**: Sequential information maintained
-- ✅ **Source Links**: Clickable URLs for easy reference
-- ✅ **Professional Layout**: Clean, readable document structure
-
-### Usage Tips
-
-1. **Best Practice**: Use "Copy for Docs" for fastest workflow
-2. **Team Sharing**: Export to Google Docs for real-time collaboration
-3. **Archive**: Save important research to Google Drive automatically
-4. **Formatting**: Google Docs will auto-detect and enhance markdown formatting
-
-## 🔗 Connecting to Backend
-
-### Backend Requirements
-
-The frontend expects a backend with these endpoints:
-
-- `GET /health` - Health check
-- `POST /research/stream` - Streaming research endpoint
-
-### Backend URL Configuration
-
-The frontend automatically detects the backend URL:
-
-1. **Environment Variable**: `NEXT_PUBLIC_BACKEND_URL`
-2. **Default Fallback**: `http://localhost:8080`
-
-### Streaming Protocol
-
-The frontend expects Server-Sent Events (SSE) with these event types:
-
-```typescript
-interface StreamingEvent {
-  type: string                    // Event type (session_start, research_step, etc.)
-  stage?: string                  // Research stage (clarification, research_brief, etc.)
-  content?: string                // Event content/message
-  timestamp: string               // ISO timestamp
-  research_id?: string            // Unique research session ID
-  model?: string                  // AI model being used
-  error?: string                  // Error message if applicable
-  node_name?: string              // LangGraph node name
-  node_count?: number             // Node execution count
-  duration?: number               // Event duration
+{
+  "query": "Your research question",
+  "model": "anthropic",  # openai, anthropic, or kimi
+  "api_key": "your_api_key"
 }
 ```
 
-## 📱 Responsive Design
+### Response Format (Server-Sent Events)
+```
+data: {"type": "session_start", "content": "Starting research..."}
+data: {"type": "stage_start", "stage": "clarification", "content": "..."}
+data: {"type": "research_step", "stage": "research_planning", "content": "🎯 Planning research strategy..."}
+data: {"type": "research_finding", "content": "🔍 Research Finding 1: ..."}
+data: {"type": "research_complete", "content": "Final report content"}
+```
 
-### Breakpoints
+## 🐳 Docker Deployment
 
-- **Mobile**: < 768px
-- **Tablet**: 768px - 1024px  
-- **Desktop**: > 1024px
+### Build Image
+```bash
+docker build -t deep-research-backend .
+```
 
-### Mobile Features
+### Run Container
+```bash
+docker run -p 8080:8080 deep-research-backend
+```
 
-- Touch-friendly interface
-- Optimized spacing and typography
-- Collapsible sections for better space usage
-- Swipe gestures for navigation
+## ☁️ GCP Cloud Run Deployment
+
+### Prerequisites
+- GCP CLI installed and authenticated
+- Docker configured for GCP
+
+### Deploy
+```bash
+# Build and push to Google Container Registry
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/deep-research-backend
+
+# Deploy to Cloud Run - BEST PRACTICE: Optimized for long-running research
+gcloud run deploy deep-research-backend \
+  --image gcr.io/YOUR_PROJECT_ID/deep-research-backend \
+  --platform managed \
+  --region europe-west1 \
+  --allow-unauthenticated \
+  --memory 4Gi \
+  --cpu 2 \
+  --timeout 3600s \
+  --max-instances 5 \
+  --min-instances 1 \
+  --concurrency 10
+```
+
+### Environment Variables in Cloud Run
+Set these in the GCP Console under Cloud Run > Service > Edit & Deploy New Revision > Variables:
+
+- `GET_API_KEYS_FROM_CONFIG=true` (enables user-provided API keys)
+
+## 🔗 Connecting to Frontend
+
+The backend is designed to work with the [Deep Research Frontend](https://github.com/ShenSeanChen/yt-deepresearch-frontend).
+
+### Frontend Configuration
+In your frontend `.env.local`:
+```bash
+# For local development
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+
+# For production
+NEXT_PUBLIC_BACKEND_URL=https://your-backend-url.run.app
+```
 
 ## 🧪 Testing
 
-### Development Testing
-
+### API Testing with curl
 ```bash
-# Start development server
-npm run dev
+# Health check
+curl -X GET http://localhost:8080/health
 
-# Test with local backend
-./switch-env.sh local
-# Visit http://localhost:3000
-
-# Test with production backend
-./switch-env.sh production
-# Visit http://localhost:3000
+# Research stream (replace with your API key)
+curl -X POST http://localhost:8080/research/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What are the latest developments in AI?",
+    "model": "anthropic",
+    "api_key": "your_api_key"
+  }'
 ```
 
-### Build Testing
-
+### Model-Specific Testing
 ```bash
-# Build for production
-npm run build
-
-# Test production build
-npm start
+# Test Kimi K2 integration
+python test_kimi_model.py
 ```
 
-## 🚀 Deployment
+## 📊 Monitoring
 
-### Vercel (Recommended)
-
-1. **Connect to Vercel**
-   ```bash
-   # Install Vercel CLI
-   npm i -g vercel
-
-   # Deploy
-   vercel
-   ```
-
-2. **Configure Environment Variables**
-   In Vercel dashboard, add:
-   ```
-   NEXT_PUBLIC_BACKEND_URL=https://your-backend-url.run.app
-   ```
-
-### Manual Deployment
-
-```bash
-# Build the application
-npm run build
-
-# Export static files (if needed)
-npm run export
-
-# Deploy the 'out' directory to your hosting provider
-```
-
-## 🎯 Usage Guide
-
-### Basic Research Flow
-
-1. **Select AI Model**: Choose from OpenAI GPT-4o, Anthropic Claude, or Kimi K2
-2. **Enter API Key**: Provide your API key for the selected model
-3. **Ask Question**: Type your research question
-4. **Watch Progress**: See real-time research steps and findings
-5. **Review Results**: Read the comprehensive final report
-
-### Advanced Features
-
-- **Expand Steps**: Click on research steps to see detailed content
-- **Source Links**: Click on sources to visit original content
-- **Progress Tracking**: Monitor research progress with the progress bar
-- **Error Handling**: Automatic retry suggestions for failed requests
-
-## 🗄️ Database Integration (Optional)
-
-The Deep Research Agent supports optional database integration for persistent research history and advanced model comparison tracking.
-
-### Supabase Integration
-
-**Why Add Database?**
-- 📊 **Research History**: Save and review past research sessions
-- 📈 **Model Performance Tracking**: Compare model speed, accuracy, and quality over time
-- 🔄 **Session Persistence**: Resume research sessions across devices
-- 📊 **Analytics Dashboard**: Track usage patterns and research topics
-
-**Setup Instructions:**
-
-1. **Create Supabase Project**
-   ```bash
-   # Visit https://supabase.com and create a new project
-   # Note your project URL and anon key
-   ```
-
-2. **Database Schema**
-   ```sql
-   -- Research sessions table
-   CREATE TABLE research_sessions (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     query TEXT NOT NULL,
-     model VARCHAR(50) NOT NULL,
-     created_at TIMESTAMP DEFAULT NOW(),
-     completed_at TIMESTAMP,
-     duration_seconds INTEGER,
-     final_report TEXT,
-     sources JSONB,
-     stage_timings JSONB,
-     success BOOLEAN DEFAULT FALSE
-   );
-
-   -- Model performance metrics
-   CREATE TABLE model_metrics (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     model VARCHAR(50) NOT NULL,
-     avg_duration FLOAT,
-     success_rate FLOAT,
-     total_runs INTEGER,
-     last_updated TIMESTAMP DEFAULT NOW()
-   );
-   ```
-
-3. **Environment Variables**
-   ```bash
-   # Add to .env.local
-   NEXT_PUBLIC_SUPABASE_URL=your-project-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   ```
-
-4. **Install Dependencies**
-   ```bash
-   npm install @supabase/supabase-js
-   ```
-
-**Benefits of Database Integration:**
-- ✅ **Persistent History**: Never lose research results
-- ✅ **Performance Analytics**: Track which models work best for different query types
-- ✅ **Team Collaboration**: Share research sessions with team members
-- ✅ **Usage Insights**: Understand research patterns and optimize workflows
-
-**Note**: Database integration is completely optional. The app works perfectly without it, but adding it unlocks powerful analytics and persistence features.
+- Health checks available at `/health`
+- Structured logging for debugging
+- Request/response metrics collection
+- Error tracking and reporting
 
 ## 🔒 Security
 
-- **API Keys**: Never stored client-side, sent directly to backend
-- **HTTPS**: Enforced in production
-- **Input Validation**: Client-side validation for all inputs
-- **CORS**: Configured for secure cross-origin requests
-- **Database Security**: Supabase RLS (Row Level Security) recommended for multi-user setups
+- API keys never stored server-side
+- CORS configured for frontend origins
+- Input validation with Pydantic models
+- Rate limiting and timeout protection
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-1. **Backend Connection Failed**
-   - Check backend URL in `.env.local`
-   - Verify backend is running and accessible
-   - Check CORS configuration
+1. **HTTP 405 Errors in GCP Logs**
+   - Fixed: HEAD method support added for health checks
 
-2. **API Key Errors**
-   - Verify API key is correct for selected model
-   - Check API key permissions and quotas
-   - Ensure model is supported by your API key
+2. **Token Limit Errors**
+   - Solution: Upgraded to GPT-4o (128k context) for OpenAI
 
-3. **Streaming Issues**
-   - Check network connectivity
-   - Verify browser supports Server-Sent Events
-   - Check for ad blockers or network filters
+3. **Kimi K2 Connection Issues**
+   - Check base URL: `https://api.moonshot.ai/anthropic`
+   - Verify API key format matches Anthropic
 
-### Debug Mode
-
-Enable debug logging:
-```javascript
-// In browser console
-localStorage.setItem('debug', 'true')
-```
-
-## 🛠️ Development
-
-### Project Structure
-
-```
-├── app/                    # Next.js app directory
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Main page
-├── components/            # React components
-│   ├── ResearchInterface.tsx
-│   └── ui/               # UI components
-├── contexts/             # React contexts
-│   └── ResearchContext.tsx
-├── lib/                  # Utilities
-│   └── utils.ts
-├── env.*.example         # Environment templates
-└── switch-env.sh         # Environment switching script
-```
-
-### Key Dependencies
-
-- **Next.js 14**: React framework
-- **TypeScript**: Type safety
-- **Tailwind CSS**: Styling
-- **Radix UI**: Accessible components
-- **Lucide React**: Icons
-
-### Code Style
-
-- **Google Standards**: Code comments and formatting
-- **TypeScript**: Strict type checking
-- **ESLint**: Code linting
-- **Prettier**: Code formatting
+4. **Streaming Interruptions**
+   - Keep-alive headers configured
+   - Timeout set to 300s for long research
 
 ## 📝 License
 
@@ -556,18 +253,16 @@ MIT License - see LICENSE file for details.
 
 1. Fork the repository
 2. Create a feature branch
-3. Follow Google coding standards
-4. Add comments to all code
-5. Test on mobile and desktop
-6. Submit a pull request
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📞 Support
 
 - Create an issue for bugs or feature requests
-- Check browser console for error messages
-- Verify backend connectivity first
-- Review environment configuration
+- Check existing issues for solutions
+- Review logs for debugging information
 
 ---
 
-Built with ❤️ using Next.js, TypeScript, and Tailwind CSS.
+Built with ❤️ using FastAPI, LangGraph, and modern AI models.
