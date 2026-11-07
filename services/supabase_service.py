@@ -154,7 +154,7 @@ class SupabaseService:
         
         try:
             # Get aggregated metrics for each model
-            models = ["openai", "anthropic", "kimi"]
+            models = ["openai", "anthropic", "kimi", "gemini", "openrouter"]
             metrics = []
             
             for model in models:

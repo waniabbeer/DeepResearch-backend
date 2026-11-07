@@ -34,7 +34,9 @@ class MetricsCollector:
         self.model_metrics: Dict[str, Dict] = {
             "openai": {"requests": [], "total_duration": 0, "success_count": 0},
             "anthropic": {"requests": [], "total_duration": 0, "success_count": 0},
-            "kimi": {"requests": [], "total_duration": 0, "success_count": 0}
+            "kimi": {"requests": [], "total_duration": 0, "success_count": 0},
+            "gemini": {"requests": [], "total_duration": 0, "success_count": 0},
+            "openrouter": {"requests": [], "total_duration": 0, "success_count": 0}
         }
     
     async def store_research_metrics(

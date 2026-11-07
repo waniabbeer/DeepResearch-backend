@@ -122,6 +122,8 @@ class TestModelService:
         assert service.validate_model("openai") == True
         assert service.validate_model("anthropic") == True
         assert service.validate_model("kimi") == True
+        assert service.validate_model("gemini") == True
+        assert service.validate_model("openrouter") == True
         
         # Test invalid model
         assert service.validate_model("invalid") == False

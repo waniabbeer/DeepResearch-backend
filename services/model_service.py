@@ -64,6 +64,32 @@ class ModelService:
                     "coding_assistance"
                 ],
                 max_tokens=128000
+            ),
+            "gemini": AvailableModel(
+                id="gemini",
+                name="Gemini 2.5 Flash",
+                provider="Google",
+                description="Google Gemini 2.5 Flash using a Gemini API key from Google AI Studio",
+                capabilities=[
+                    "web_search",
+                    "document_analysis",
+                    "multi-step_reasoning",
+                    "structured_output"
+                ],
+                max_tokens=1048576
+            ),
+            "openrouter": AvailableModel(
+                id="openrouter",
+                name="Nemotron 3 Ultra (Free)",
+                provider="OpenRouter",
+                description="nvidia/nemotron-3-ultra-550b-a55b:free through OpenRouter, locked to NVIDIA with reasoning enabled",
+                capabilities=[
+                    "web_search",
+                    "document_analysis",
+                    "multi-step_reasoning",
+                    "structured_output"
+                ],
+                max_tokens=1000000
             )
         }
     
@@ -78,7 +104,7 @@ class ModelService:
             return {
                 "models": list(self._models.values()),
                 "total_count": len(self._models),
-                "supported_providers": ["OpenAI", "Anthropic", "Moonshot AI"]
+                "supported_providers": ["OpenAI", "Anthropic", "Moonshot AI", "Google", "OpenRouter"]
             }
         except Exception as e:
             logger.error(f"Error getting available models: {str(e)}")
@@ -123,7 +149,9 @@ class ModelService:
             # Claude 3.5 Sonnet - current stable model
             "anthropic": "claude-sonnet-4-20250514",
             # Moonshot Kimi K2 0905 preview via Anthropic-compatible endpoint
-            "kimi": "kimi-k2-0905-preview"
+            "kimi": "kimi-k2-0905-preview",
+            "gemini": "gemini-2.5-flash",
+            "openrouter": "nvidia/nemotron-3-ultra-550b-a55b:free"
         }
     
     def get_api_key_env_var(self, model_id: str) -> Optional[str]:
@@ -139,6 +167,8 @@ class ModelService:
         env_vars = {
             "openai": "OPENAI_API_KEY",
             "anthropic": "ANTHROPIC_API_KEY", 
-            "kimi": "ANTHROPIC_API_KEY"  # Kimi uses Anthropic-compatible API key
+            "kimi": "ANTHROPIC_API_KEY",  # Kimi uses Anthropic-compatible API key
+            "gemini": "GEMINI_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY"
         }
         return env_vars.get(model_id)

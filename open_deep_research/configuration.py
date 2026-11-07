@@ -50,6 +50,33 @@ class Configuration(BaseModel):
             }
         }
     )
+    base_url: Optional[str] = Field(
+        default=None,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "string",
+                "description": "Optional OpenAI-compatible base URL, used for OpenRouter"
+            }
+        }
+    )
+    extra_body: Optional[dict[str, Any]] = Field(
+        default=None,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "object",
+                "description": "Extra JSON fields sent with an OpenAI-compatible request"
+            }
+        }
+    )
+    use_responses_api: Optional[bool] = Field(
+        default=None,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "boolean",
+                "description": "Force the OpenAI Responses API. OpenRouter uses chat completions."
+            }
+        }
+    )
     
     max_structured_output_retries: int = Field(
         default=3,

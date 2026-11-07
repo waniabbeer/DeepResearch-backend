@@ -10,6 +10,10 @@ import json
 import logging
 import os
 import time
+
+from dotenv import load_dotenv
+
+load_dotenv()
 from datetime import datetime
 from typing import AsyncGenerator, Dict, List, Optional
 
@@ -70,6 +74,22 @@ research_service = DeepResearchService()
 model_service = ModelService()
 metrics_collector = MetricsCollector()
 
+_SERVER_KEY_ENV = {
+    "gemini": "GEMINI_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+}
+
+
+def _server_api_key(model: str, provided: str) -> str:
+    """Use the key from the request, or the matching server environment variable."""
+    key = (provided or "").strip()
+    if key:
+        return key
+    env_name = _SERVER_KEY_ENV.get(model)
+    if not env_name:
+        return ""
+    return os.getenv(env_name, "").strip()
+
 @app.get("/")
 @app.head("/")
 async def root():
@@ -92,7 +112,7 @@ async def health_check():
             "model_service": "active",
             "metrics_collector": "active"
         },
-        "supported_models": ["openai", "anthropic", "kimi"]
+        "supported_models": ["openai", "anthropic", "kimi", "gemini", "openrouter"]
     }
 
 @app.post("/research/stream")
@@ -114,7 +134,8 @@ async def stream_research(request: ResearchRequest):
         if not request.query.strip():
             raise HTTPException(status_code=400, detail="Research query cannot be empty")
         
-        if not request.api_key.strip():
+        api_key = _server_api_key(request.model, request.api_key)
+        if not api_key:
             raise HTTPException(status_code=400, detail="API key is required")
         
         # Validate model selection
@@ -138,7 +159,7 @@ async def stream_research(request: ResearchRequest):
                 async for event in research_service.stream_research(
                     query=request.query,
                     model=request.model,
-                    api_key=request.api_key,
+                    api_key=api_key,
                     research_id=research_id
                 ):
                     yield f"data: {json.dumps(event.dict())}\n\n"
@@ -232,11 +253,13 @@ async def run_multi_model_comparison(request: MultiModelComparisonRequest):
                     status_code=400,
                     detail=f"Unsupported model: {model}. Available: {available_model_ids}"
                 )
-            if model not in request.api_keys or not request.api_keys[model].strip():
+            provided_key = _server_api_key(model, request.api_keys.get(model, ""))
+            if not provided_key:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Missing API key for model: {model}"
                 )
+            request.api_keys[model] = provided_key
         
         session_id = f"compare_{int(time.time())}"
         comparison_results = []

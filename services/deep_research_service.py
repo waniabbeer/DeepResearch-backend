@@ -293,6 +293,8 @@ class DeepResearchService:
                 # Set Anthropic base URL to Moonshot AI Anthropic-compatible endpoint
                 os.environ["ANTHROPIC_BASE_URL"] = "https://api.moonshot.ai/anthropic"
                 logger.info(f"Configured Kimi K2-Instruct-0905 with Anthropic-compatible API via Moonshot endpoint")
+            elif model in ("gemini", "openrouter"):
+                os.environ.pop("ANTHROPIC_BASE_URL", None)
             
             # LEGACY: Old complex API keys system (commented out for future env variable use)
             # api_keys = {}
@@ -311,6 +313,10 @@ class DeepResearchService:
                 model_provider = "openai"
             elif model == "anthropic":
                 model_provider = "anthropic"
+            elif model == "gemini":
+                model_provider = "google_genai"
+            elif model == "openrouter":
+                model_provider = "openai"
             
             # BEST PRACTICE: Balanced configuration for production use
             # Optimized for reliability, speed, and cost-effectiveness
@@ -325,7 +331,7 @@ class DeepResearchService:
                 "summarization_model_max_tokens": 4000,
                 "allow_clarification": False,  # Skip clarification for faster results
                 "max_structured_output_retries": 2,  # Reasonable retry limit
-                "search_api": "anthropic",  # Use Anthropic search API
+                "search_api": "tavily" if model in ("gemini", "openrouter") else "anthropic",
                 
                 # BEST PRACTICE: Conservative limits to prevent timeouts
                 "max_researcher_iterations": 1,  # Single iteration to stay under timeout
@@ -335,6 +341,16 @@ class DeepResearchService:
                 # API key configuration
                 "user_api_key": user_api_key
             }
+            if model == "openrouter":
+                config_dict["base_url"] = "https://openrouter.ai/api/v1"
+                config_dict["use_responses_api"] = False
+                config_dict["extra_body"] = {
+                    "reasoning": {"enabled": True},
+                    "provider": {
+                        "only": ["nvidia"],
+                        "allow_fallbacks": False,
+                    },
+                }
             
             # Add model provider if specified
             if model_provider:

@@ -15,6 +15,8 @@ class ModelType(str, Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     KIMI = "kimi"
+    GEMINI = "gemini"
+    OPENROUTER = "openrouter"
 
 
 class ResearchStage(str, Enum):
@@ -39,7 +41,7 @@ class ResearchRequest(BaseModel):
     """Request model for deep research API"""
     query: str = Field(..., description="Research question or topic", min_length=1)
     model: ModelType = Field(..., description="AI model to use for research")
-    api_key: str = Field(..., description="User's API key for the selected model", min_length=1)
+    api_key: str = Field(default="", description="User's API key for the selected model. OpenRouter can use OPENROUTER_API_KEY on the server instead.")
     
     class Config:
         """Pydantic configuration"""
